@@ -4,7 +4,6 @@ require_once 'db_config.php';
 
 $error = '';
 
-// Procesar formulario
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = trim($_POST['nombre']);
     $telefono = trim($_POST['telefono']);
@@ -13,7 +12,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $estatus = $_POST['estatus'];
     $vacante = $_POST['vacante'];
 
-    // **VALIDACIONES**
     if (strlen($nombre) < 3 || strlen($nombre) > 100) {
         $error = "El nombre debe tener entre 3 y 100 caracteres.";
     } elseif (!preg_match('/^\d{10}$/', $telefono)) {
@@ -21,7 +19,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (strlen($rfc) != 13) {
         $error = "El RFC debe tener 13 caracteres.";
     } else {
-        // **Validar que la fecha de nacimiento corresponda a alguien mayor de 18 años**
         $fecha_actual = new DateTime();
         $fecha_nacimiento_dt = new DateTime($fecha_nacimiento);
         $edad = $fecha_actual->diff($fecha_nacimiento_dt)->y;
@@ -32,16 +29,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($error)) {
-        // **Generar correo automático basado en el nombre**
         $nombre_correo = strtolower(str_replace(' ', '.', $nombre));
         $correo = "$nombre_correo@empresa.com";
-
-        // **Generar contraseña automática basada en la empresa + primeras 3 letras del RFC**
         $rfc_part = strtoupper(substr($rfc, 0, 3));
         $contrasena = "Empresa2024$rfc_part";
         $contrasena_hash = password_hash($contrasena, PASSWORD_DEFAULT);
 
-        // **Verificar si el correo ya existe en empleados**
         $sql_check_empleado = "SELECT id FROM empleados WHERE correo = ?";
         $stmt_check_empleado = $conn->prepare($sql_check_empleado);
         $stmt_check_empleado->bind_param("s", $correo);
@@ -51,7 +44,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt_check_empleado->num_rows > 0) {
             $error = "Este correo ya está registrado en empleados.";
         } else {
-            // **Verificar si el usuario ya existe en la tabla usuarios**
             $sql_check_usuario = "SELECT id FROM usuarios WHERE correo = ?";
             $stmt_check_usuario = $conn->prepare($sql_check_usuario);
             $stmt_check_usuario->bind_param("s", $correo);
@@ -59,11 +51,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_check_usuario->store_result();
 
             if ($stmt_check_usuario->num_rows > 0) {
-                // **Si el usuario ya existe en la tabla usuarios, obtener su ID**
                 $stmt_check_usuario->bind_result($usuario_id);
                 $stmt_check_usuario->fetch();
             } else {
-                // **Insertar en la tabla usuarios**
                 $sql_usuario = "INSERT INTO usuarios (nombre, correo, contrasena, tipo_usuario) VALUES (?, ?, ?, ?)";
                 $stmt = $conn->prepare($sql_usuario);
                 $stmt->bind_param("ssss", $nombre, $correo, $contrasena_hash, $vacante);
@@ -75,7 +65,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
 
-            // **Insertar en empleados**
             if (!isset($error)) {
                 $sql_empleado = "INSERT INTO empleados (usuario_id, nombre, telefono, correo, fecha_nacimiento, rfc, estatus, vacante) 
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -104,7 +93,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Registrar Empleado</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script>
-        // Evitar que se seleccione una fecha de nacimiento menor a 18 años desde hoy
         document.addEventListener("DOMContentLoaded", function () {
             let fechaActual = new Date();
             let anioMin = fechaActual.getFullYear() - 18;

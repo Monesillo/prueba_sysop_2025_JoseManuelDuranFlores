@@ -5,7 +5,6 @@ require_once 'db_config.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id'])) {
     $id = intval($_POST['id']);
 
-    // Actualizar el estado del empleado a inactivo
     $sql = "UPDATE empleados SET estatus = 'inactivo' WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);

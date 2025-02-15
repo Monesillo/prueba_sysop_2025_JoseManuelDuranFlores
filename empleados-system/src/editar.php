@@ -7,7 +7,6 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-// Verificar si se recibió un ID válido
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     echo "ID no proporcionado.";
     exit;
@@ -15,7 +14,6 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $empleado_id = (int)$_GET['id'];
 
-// Obtener datos del empleado
 $sql = "SELECT e.*, u.tipo_usuario 
         FROM empleados e
         LEFT JOIN usuarios u ON e.usuario_id = u.id
@@ -32,7 +30,6 @@ if ($result->num_rows > 0) {
     exit;
 }
 
-// Procesar actualización del empleado
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = trim($_POST['nombre']);
     $telefono = trim($_POST['telefono']);
@@ -44,7 +41,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $error = "";
 
-    // **Validaciones**
     if (strlen($nombre) < 3 || strlen($nombre) > 100) {
         $error = "El nombre debe tener entre 3 y 100 caracteres.";
     } elseif (!preg_match('/^[0-9]{10}$/', $telefono)) {
@@ -54,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (!preg_match('/^[A-Z0-9]{13}$/', strtoupper($rfc))) {
         $error = "El RFC debe tener 13 caracteres alfanuméricos.";
     } else {
-        // **Validar que el usuario sea mayor de 18 años**
         $fecha_actual = new DateTime();
         $fecha_nac = new DateTime($fecha_nacimiento);
         $diferencia = $fecha_actual->diff($fecha_nac)->y;
@@ -65,7 +60,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($error)) {
-        // Actualizar datos en la tabla empleados
         $sql_update = "UPDATE empleados SET 
             nombre = ?, telefono = ?, correo = ?, fecha_nacimiento = ?, 
             rfc = ?, estatus = ?, vacante = ?
@@ -74,7 +68,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("sssssssi", $nombre, $telefono, $correo, $fecha_nacimiento, $rfc, $estatus, $vacante, $empleado_id);
 
         if ($stmt->execute()) {
-            // Actualizar el rol en la tabla usuarios
             $sql_update_user = "UPDATE usuarios SET tipo_usuario = ? WHERE id = ?";
             $stmt_user = $conn->prepare($sql_update_user);
             $stmt_user->bind_param("si", $vacante, $empleado['usuario_id']);

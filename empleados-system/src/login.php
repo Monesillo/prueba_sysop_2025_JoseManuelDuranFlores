@@ -9,7 +9,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contrasena = $_POST['contrasena'];
 
     if (!empty($correo) && !empty($contrasena)) {
-        // Consulta SQL con LEFT JOIN para obtener el estatus de empleados
         $sql = "
             SELECT u.id, u.nombre, u.correo, u.contrasena, u.tipo_usuario, 
                    COALESCE(e.estatus, 'activo') as estatus
@@ -19,7 +18,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt = $conn->prepare($sql);
 
-        // Verificar si la consulta se preparó correctamente
         if (!$stmt) {
             die("Error en la consulta SQL: " . $conn->error);
         }
@@ -32,20 +30,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_result($id, $nombre, $correo, $hash, $tipo_usuario, $estatus);
             $stmt->fetch();
 
-            // Verificar si el usuario está activo
             if ($estatus !== 'activo') {
                 $error = "Tu cuenta está inactiva. Contacta al administrador.";
             } elseif (password_verify($contrasena, $hash)) {
-                // Iniciar sesión
                 $_SESSION['usuario_id'] = $id;
                 $_SESSION['nombre'] = $nombre;
                 $_SESSION['tipo_usuario'] = $tipo_usuario;
-
-                // Redirigir según el tipo de usuario
                 if ($tipo_usuario === 'admin') {
-                    header("Location: empleados.php"); // Exclusivo para administradores
+                    header("Location: empleados.php");
                 } else {
-                    header("Location: main_empleados.php"); // Para empleados y ventas
+                    header("Location: main_empleados.php");
                 }
                 exit;
             } else {

@@ -2,7 +2,6 @@
 session_start();
 require_once 'db_config.php';
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit;
@@ -13,10 +12,8 @@ $paginacion = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $paginacion = max($paginacion, 1);
 $inicio = ($paginacion - 1) * $registros_por_pagina;
 
-// Verificar si hay búsqueda
 $buscar = isset($_GET['buscar']) ? trim($_GET['buscar']) : "";
 
-// Consulta SQL con búsqueda activa
 $sql = "SELECT e.id, e.nombre, e.telefono, e.correo, e.estatus, u.tipo_usuario 
         FROM empleados e
         LEFT JOIN usuarios u ON e.usuario_id = u.id
@@ -29,7 +26,6 @@ if (!empty($buscar)) {
 $sql .= " LIMIT $inicio, $registros_por_pagina";
 $result = $conn->query($sql);
 
-// Obtener el total de empleados activos filtrados
 $sql_total = "SELECT COUNT(*) AS total FROM empleados WHERE estatus = 'activo'";
 if (!empty($buscar)) {
     $sql_total .= " AND (nombre LIKE '%$buscar%' OR correo LIKE '%$buscar%')";

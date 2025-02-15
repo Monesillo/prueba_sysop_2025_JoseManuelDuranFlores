@@ -1,14 +1,11 @@
 <?php
 session_start();
 require_once 'db_config.php';
-
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit;
 }
 
-// Obtener el nombre del usuario
 $nombre_completo = $_SESSION['nombre'];
 ?>
 
